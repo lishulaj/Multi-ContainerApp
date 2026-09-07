@@ -1,0 +1,42 @@
+---
+- name: Configure Production Server for Docker Compose
+  hosts: hosts
+  become: yes
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Docker and Docker Compose
+      ansible.builtin.apt:
+        pkg:
+          - docker.io
+          - docker-compose
+        state: latest
+
+    - name: Ensure Docker service is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: /opt/todo-app
+        state: directory
+        mode: '0755'
+
+    - name: Copy deployment files to host
+      ansible.builtin.copy:
+        src: "../docker-compose.yml"
+        dest: /opt/todo-app/
+
+    - name: Copy Nginx directory
+      ansible.builtin.copy:
+        src: "../nginx"
+        dest: /opt/todo-app/
+
+    - name: Copy .env file
+      ansible.builtin.copy:
+        src: "../.env"
+        dest: /opt/todo-app/
